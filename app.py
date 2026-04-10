@@ -2,10 +2,9 @@ import os
 import sys
 from colorama import init, Fore, Back, Style
 
-# Inicializa o colorama (compatível com Windows e Unix)
 init(autoreset=True)
 
-# ── Paleta de cores suaves ──────────────────────────────────────────────
+# Paleta de cores 
 TITLE_COLOR   = Fore.CYAN + Style.BRIGHT
 BORDER_COLOR  = Fore.BLUE
 OPTION_NUM    = Fore.YELLOW + Style.BRIGHT
@@ -18,7 +17,7 @@ WARNING_COLOR = Fore.YELLOW
 INFO_COLOR    = Fore.CYAN
 RESET         = Style.RESET_ALL
 
-# ── Critérios de qualidade ───────────────────────────────────────────────
+# Critérios de qualidade 
 PESO_MIN        = 95.0      # gramas
 PESO_MAX        = 105.0     # gramas
 CORES_APROVADAS = {"azul", "verde"}
@@ -26,7 +25,7 @@ COMP_MIN        = 10.0      # centímetros
 COMP_MAX        = 20.0      # centímetros
 CAP_CAIXA       = 10        # peças por caixa
 
-# ── Armazenamento em memória ─────────────────────────────────────────────
+# Armazenamento em memória
 pecas: list[dict]  = []   # todas as peças cadastradas
 caixas: list[dict] = []   # caixas (abertas e fechadas)
 
@@ -79,7 +78,7 @@ def _avaliar_qualidade(peso: float, cor: str, comprimento: float) -> tuple[bool,
     return (len(reprovacoes) == 0, reprovacoes)
 
 
-# ── Helpers de UI ────────────────────────────────────────────────────────
+# Helpers de UI
 
 def clear_screen():
     os.system("cls" if os.name == "nt" else "clear")
@@ -159,39 +158,39 @@ def _separador():
     print(BORDER_COLOR + "  " + "─" * 44)
 
 
-# ── Funcionalidade 1: Cadastrar nova peça ───────────────────────────────
+# 1: Cadastrar nova peça
 
 def cadastrar_peca():
     print()
     print(INFO_COLOR + "  Preencha os dados da peça (ou deixe em branco para cancelar):")
     print()
 
-    # ── Descrição ───────────────────────────────────────────────────────
+    # Descrição
     descricao = _input_texto("Descrição")
     if not descricao:
         print(WARNING_COLOR + "\n  ⚠  Operação cancelada (descrição vazia).")
         return
 
-    # ── Peso ────────────────────────────────────────────────────────────
+    # Peso 
     peso = _input_float("Peso (g)", "gramas")
     if peso is None:
         return
 
-    # ── Cor ─────────────────────────────────────────────────────────────
+    # Cor
     cor = _input_texto("Cor").lower()
     if not cor:
         print(WARNING_COLOR + "\n  ⚠  Operação cancelada (cor vazia).")
         return
 
-    # ── Comprimento ─────────────────────────────────────────────────────
+    # Comprimento
     comprimento = _input_float("Comprimento (cm)", "centímetros")
     if comprimento is None:
         return
 
-    # ── Avaliação de qualidade ──────────────────────────────────────────
+    # Avaliação de qualidade 
     aprovada, motivos = _avaliar_qualidade(peso, cor, comprimento)
 
-    # ── Monta o registro da peça ─────────────────────────────────────────
+    # Monta o registro da peça 
     id_peca = _proximo_id_peca()
     peca = {
         "id":          id_peca,
@@ -204,7 +203,7 @@ def cadastrar_peca():
         "caixa":       None,      # número da caixa (preenchido se aprovada)
     }
 
-    # ── Armazenamento ───────────────────────────────────────────────────
+    # Armazenamento
     if aprovada:
         # Obtém ou cria a caixa aberta
         caixa = _caixa_atual()
@@ -224,7 +223,7 @@ def cadastrar_peca():
     # Adiciona à lista geral de peças
     pecas.append(peca)
 
-    # ── Feedback visual ──────────────────────────────────────────────────
+    # Feedback visual
     print()
     _separador()
     if aprovada:
@@ -243,8 +242,6 @@ def cadastrar_peca():
     print(OPTION_TEXT + f"  Comprimento:  {comprimento:.1f} cm")
     _separador()
 
-
-# ── Stubs das funcionalidades (serão implementados nas próximas etapas) ─
 
 def listar_pecas():
     reprovadas = [p for p in pecas if not p["aprovada"]]
@@ -319,7 +316,7 @@ def listar_pecas():
         print()
         print(BORDER_COLOR + "  " + "─" * 44)
 
-    # ── Totais ────────────────────────────────────────────────────────
+    # Totais
     print()
     print(BORDER_COLOR + "  " + "═" * 44)
     print(TITLE_COLOR  + f"  Total cadastrado : {len(pecas)} peça(s)")
@@ -341,7 +338,7 @@ def remover_peca():
         print(ERROR_COLOR + "\n  ✖  ID inválido! Informe um número inteiro.")
         return
 
-    # ── Busca a peça ────────────────────────────────────────────────────
+    # Busca a peça
     peca = next((p for p in pecas if p["id"] == id_busca), None)
 
     if peca is None:
@@ -349,7 +346,7 @@ def remover_peca():
         print(WARNING_COLOR + f"  ⚠  Peça #{id_busca} não encontrada no sistema.")
         return
 
-    # ── Exibe os dados encontrados ───────────────────────────────────────
+    # Exibe os dados encontrados
     print()
     _separador()
     print(INFO_COLOR + "  Peça encontrada:")
@@ -368,14 +365,14 @@ def remover_peca():
             print(ERROR_COLOR + f"       • {motivo}")
     _separador()
 
-    # ── Confirmação ──────────────────────────────────────────────────────
+    # Confirmação 
     print()
     confirmacao = _input_texto("Confirma a exclusão? (s/N)").lower()
     if confirmacao != "s":
         print(WARNING_COLOR + "\n  ⚠  Exclusão cancelada.")
         return
 
-    # ── Remove da caixa (se aprovada) ────────────────────────────────────
+    # Remove da caixa (se aprovada)
     if peca["aprovada"] and peca["caixa"] is not None:
         caixa = next((c for c in caixas if c["numero"] == peca["caixa"]), None)
         if caixa and id_busca in caixa["pecas"]:
@@ -386,7 +383,7 @@ def remover_peca():
                 print(INFO_COLOR + f"  📦  Caixa #{caixa['numero']} reaberta "
                       f"(agora com {len(caixa['pecas'])}/{CAP_CAIXA} peças).")
 
-    # ── Remove da lista geral ─────────────────────────────────────────────
+    # Remove da lista geral 
     pecas.remove(peca)
 
     print()
@@ -410,14 +407,14 @@ def listar_caixas():
             print(INFO_COLOR + f"  ℹ  Há {len(abertas)} caixa(s) ainda aberta(s).")
         return
 
-    # ── Título ────────────────────────────────────────────────────────────
+    # Título 
     print()
     print(BORDER_COLOR + "  ╔" + "═" * 44 + "╗")
     label = f"  CAIXAS FECHADAS  ({len(fechadas)} caixa(s))"
     print(BORDER_COLOR + "  ║" + INFO_COLOR + f"{label:<44}" + BORDER_COLOR + "║")
     print(BORDER_COLOR + "  ╚" + "═" * 44 + "╝")
 
-    # ── Detalhe de cada caixa fechada ─────────────────────────────────────
+    # Detalhe de cada caixa fechada
     for caixa in fechadas:
         total_cx = len(caixa["pecas"])
         print()
@@ -438,7 +435,7 @@ def listar_caixas():
 
         print(INFO_COLOR + "  " + "═" * 46)
 
-    # ── Resumo geral ──────────────────────────────────────────────────────
+    # Resumo geral
     total_pecas_fechadas = sum(len(c["pecas"]) for c in fechadas)
     print()
     print(BORDER_COLOR + "  " + "═" * 46)
@@ -566,7 +563,7 @@ def gerar_relatorio():
         print(BORDER_COLOR + "  " + "─" * 50)
 
 
-# ── Roteador de opções ───────────────────────────────────────────────────
+# Roteador de opções
 
 def handle_option(choice: str) -> bool:
     """Processa a opção escolhida. Retorna False quando deve sair."""
@@ -601,7 +598,7 @@ def handle_option(choice: str) -> bool:
     return True
 
 
-# ── Ponto de entrada ────────────────────────────────────────────────────
+# Ponto de entrada 
 
 def main():
     running = True
